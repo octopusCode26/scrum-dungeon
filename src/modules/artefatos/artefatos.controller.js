@@ -69,6 +69,13 @@ async function detalheArtefatoPorModuloController(req, res) {
 
     return res.status(200).json({ success: true, data: artefato });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     console.error("Erro em detalheArtefatoPorModuloController:", error);
     return res.status(500).json({ success: false, message: "Erro interno" });
   }

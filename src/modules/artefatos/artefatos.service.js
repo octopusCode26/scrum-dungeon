@@ -9,7 +9,25 @@ async function obterArtefato(idUsuario, idArtefato) {
 }
 
 async function obterArtefatoPorModulo(idUsuario, idModulo) {
-  return await artefatosRepository.buscarArtefatoPorModulo(idUsuario, idModulo);
+  const artefato = await artefatosRepository.buscarArtefatoPorModulo(
+    idUsuario,
+    idModulo,
+  );
+
+  if (!artefato) return null;
+
+  const podeColetar = await artefatosRepository.usuarioPodeColetarArtefato(
+    idUsuario,
+    artefato.id,
+  );
+
+  if (!artefato.desbloqueado && !podeColetar) {
+    const error = new Error("Artefato ainda não pode ser acessado");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  return artefato;
 }
 
 async function coletarArtefatoDoUsuario(idUsuario, idArtefato) {

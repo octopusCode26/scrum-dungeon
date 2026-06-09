@@ -13,6 +13,131 @@
 window.__progressoSessao = window.__progressoSessao || {};
 
 /* =========================================================
+   BARREIRAS DE ACESSO POR PROGRESSO
+========================================================= */
+
+(async function protegerRotasPorProgresso() {
+  const rotaAtual = window.location.pathname;
+  const rotasComBarreira = [
+    "/mapa",
+    "/burningdown",
+    "/artefatos",
+    "/coleta-artefato",
+    "/perfil",
+    "/certificado",
+    "/questionario",
+    "/questionario1",
+    "/resultado",
+  ];
+  const rotaCapitulo = rotaAtual.match(/^\/capitulo([1-5])$/);
+  const rotaDesafio = rotaAtual.match(/^\/desafio([1-5])$/);
+  const precisaValidar =
+    rotaCapitulo || rotaDesafio || rotasComBarreira.includes(rotaAtual);
+
+  if (!precisaValidar || rotaAtual === "/") return;
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.replace("/");
+    return;
+  }
+
+  try {
+    const progresso = await obterProgressoDaJornada(token);
+    const modulos = Array.isArray(progresso?.modulos) ? progresso.modulos : [];
+    const moduloAtual =
+      modulos.find((modulo) => modulo.desafio_atual) || modulos[0];
+
+    if (!modulos.length || !podeAcessarRotaDaJornada(rotaAtual, modulos)) {
+      window.location.replace(criarRotaSeguraDaJornada(moduloAtual));
+    }
+  } catch (error) {
+    console.warn("Falha ao validar acesso da rota.", error);
+    window.location.replace("/");
+  }
+})();
+
+async function obterProgressoDaJornada(token) {
+  if (window.__progressoSessao.progressoMapa) {
+    return window.__progressoSessao.progressoMapa;
+  }
+
+  const response = await fetch("/api/progresso/mapa", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Nao foi possivel validar o progresso.");
+  }
+
+  const progresso = await response.json();
+  window.__progressoSessao.progressoMapa = progresso;
+  return progresso;
+}
+
+function podeAcessarRotaDaJornada(rota, modulos) {
+  const rotaCapitulo = rota.match(/^\/capitulo([1-5])$/);
+  const rotaDesafio = rota.match(/^\/desafio([1-5])$/);
+  const moduloAtual = modulos.find((modulo) => modulo.desafio_atual);
+
+  if (rotaCapitulo) {
+    const idModulo = Number(rotaCapitulo[1]);
+    const modulo = modulos.find((item) => Number(item.id_modulo) === idModulo);
+    return Boolean(modulo?.historia_liberada);
+  }
+
+  if (rotaDesafio) {
+    const idModulo = Number(rotaDesafio[1]);
+    const modulo = modulos.find((item) => Number(item.id_modulo) === idModulo);
+    return Boolean(modulo?.historia_concluida && modulo?.desafio_atual);
+  }
+
+  if (rota === "/questionario" || rota === "/questionario1") {
+    return Boolean(moduloAtual?.historia_concluida);
+  }
+
+  if (rota === "/certificado") {
+    return modulos.some((modulo) => modulo.certificado_liberado);
+  }
+
+  if (rota === "/artefatos") {
+    const primeiroModulo = modulos.find((modulo) => Number(modulo.id_modulo) === 1);
+    return Boolean(primeiroModulo?.historia_concluida);
+  }
+
+  if (rota === "/coleta-artefato") {
+    const idModulo = Number(new URLSearchParams(window.location.search).get("modulo"));
+    const modulo = modulos.find((item) => Number(item.id_modulo) === idModulo);
+
+    return Boolean(
+      idModulo &&
+        modulo &&
+        modulo.historia_liberada &&
+        (modulo.certificado_liberado || (modulo.historia_concluida && !modulo.desafio_atual))
+    );
+  }
+
+  if (rota === "/resultado") {
+    return Boolean(moduloAtual?.historia_concluida);
+  }
+
+  return true;
+}
+
+function criarRotaSeguraDaJornada(moduloAtual) {
+  const idModuloAtual = Number(moduloAtual?.id_modulo) || 1;
+
+  if (moduloAtual?.historia_concluida) {
+    return `/desafio${idModuloAtual}`;
+  }
+
+  return `/capitulo${idModuloAtual}`;
+}
+
+/* =========================================================
    MENU MOBILE (HEADER)
 ========================================================= */
 
