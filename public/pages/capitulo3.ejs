@@ -437,7 +437,7 @@
         </div>
 
         <div class="story-art">
-          <div class="portal" id="portalScene">
+          <div class="portal is-locked" id="portalScene">
             <img
               class="portal-img"
               src="/assets/img/capitulo_3/portal.PNG"
@@ -445,8 +445,10 @@
             />
             <a
               class="ampulheta-link"
-              href="/desafio3"
+              data-href="/desafio3"
+              aria-disabled="true"
               aria-label="Entrar na próxima página pela ampulheta"
+              tabindex="-1"
             >
               <img
                 class="ampulheta-img"

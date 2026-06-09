@@ -2,7 +2,6 @@
   background: #090908;
   color: #f4efe2;
   padding-bottom: 120px;
-  overflow-x: hidden;
 }
 
 .capitulo-hero {
@@ -990,6 +989,27 @@ strong{
 
 }
 
+.portal.is-locked .portal-img {
+  filter:
+    grayscale(0.35)
+    brightness(0.72);
+}
+
+.portal.is-locked .ampulheta-img,
+.portal.is-locked .ampulheta2-img {
+  opacity: 0.55;
+  filter:
+    grayscale(0.45)
+    brightness(0.75);
+}
+
+.portal.is-locked:hover .portal-img {
+  transform: none;
+  filter:
+    grayscale(0.35)
+    brightness(0.72);
+}
+
 .ampulheta-link {
   position: absolute;
   left: 50%;
@@ -1031,8 +1051,16 @@ strong{
   animation: girarAmpulheta 3.0s linear infinite;
 }
 
+.portal:not(.is-locked) .ampulheta-img {
+  animation: girarAmpulheta 3.0s linear infinite;
+}
+
 .ampulheta-link:hover .ampulheta2-img,
 .ampulheta-link:focus-visible .ampulheta2-img {
+  animation: girarAmpulhetaInversa 2.5s linear infinite;
+}
+
+.portal:not(.is-locked) .ampulheta2-img {
   animation: girarAmpulhetaInversa 2.5s linear infinite;
 }
 
@@ -1061,8 +1089,7 @@ strong{
 ========================================================= */
 @media (max-width: 680px){
   html,
-  body,
-  .capitulo-page {
+  body {
     background-color: #090908;
     overflow-x: hidden;
   }
@@ -1252,6 +1279,41 @@ body::-webkit-scrollbar-thumb {
     width: min(240px, 78vw);
   }
 
+}
+
+@media (max-width: 768px) {
+  .chapter-progress-wrap {
+    padding: 0.65rem 0;
+  }
+
+  .chapter-progress {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-radius: 14px;
+    padding: 0.7rem 0.85rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .chapter-progress::-webkit-scrollbar {
+    display: none;
+  }
+
+  .progress-item {
+    flex: 0 0 auto;
+    min-width: 82px;
+  }
+
+  .progress-item img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .progress-item span {
+    font-size: 0.75rem;
+  }
 }
 
 @media (max-width: 360px) {

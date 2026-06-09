@@ -1,5 +1,6 @@
 const ID_MODULO = 3;
 const SCROLL_OFFSET = 150;
+let historiaConcluida = false;
 
 function obterToken() {
   const token = localStorage.getItem("token");
@@ -129,6 +130,43 @@ function configurarFogueiraBurningdown() {
   });
 }
 
+function definirPortalLiberado(liberado) {
+  historiaConcluida = liberado;
+
+  const portal = document.getElementById("portalScene");
+  const linkPortal = document.querySelector(".ampulheta-link");
+
+  if (portal) {
+    portal.classList.toggle("is-locked", !liberado);
+  }
+
+  if (!linkPortal) return;
+
+  if (liberado) {
+    linkPortal.href = linkPortal.dataset.href || "/desafio3";
+    linkPortal.removeAttribute("aria-disabled");
+    linkPortal.removeAttribute("tabindex");
+  } else {
+    linkPortal.removeAttribute("href");
+    linkPortal.setAttribute("aria-disabled", "true");
+    linkPortal.setAttribute("tabindex", "-1");
+  }
+}
+
+function configurarPortalDoDesafio() {
+  definirPortalLiberado(false);
+
+  const linkPortal = document.querySelector(".ampulheta-link");
+
+  if (!linkPortal) return;
+
+  linkPortal.addEventListener("click", (event) => {
+    if (historiaConcluida) return;
+
+    event.preventDefault();
+  });
+}
+
 async function concluirHistoria() {
   const token = obterToken();
   const btnConcluir = document.getElementById("btnConcluirHistoria");
@@ -174,6 +212,8 @@ async function concluirHistoria() {
       status.textContent =
         "Historia concluida. A terceira porta foi liberada. Entre pela ampulheta para enfrentar o desafio.";
     }
+
+    definirPortalLiberado(true);
   } catch (error) {
     console.error(error);
 
@@ -227,6 +267,8 @@ async function carregarEstadoHistoria() {
       status.textContent =
         "Historia concluida. A terceira porta foi liberada. Entre pela ampulheta para enfrentar o desafio.";
     }
+
+    definirPortalLiberado(true);
   } catch (error) {
     console.error(error);
   }
@@ -234,6 +276,7 @@ async function carregarEstadoHistoria() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   obterToken();
+  configurarPortalDoDesafio();
   await carregarEstadoHistoria();
 
   configurarScrollParaBotoes();
